@@ -12,10 +12,8 @@ They also provide this dashboard to visualize the data : https://coronavirus.jhu
 
 * This project uses Java 14 and the latest [Spring Boot](https://spring.io/projects/spring-boot) version.
 
-<span style="color:red">
 At the time of this writing, the only version of Spring Boot that supports Java 14 is `2.3.0.M2`.  
 Versions `2.2.5-RELEASE` or `2.3.0.M3` will throw this exception : `java.lang.UnsupportedOperationException: This feature requires ASM8_EXPERIMENTAL`
-</span>
 
 * Version `3.0.0-M4` of the `surefire` plugin is needed to run the tests.
 
@@ -127,17 +125,5 @@ If you need to debug the service, use the following command to start the service
 > `java --enable-preview -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n -jar target/covid-19-api.jar`
 
 then connect a remote debugging session to port `8000`
-
-* Profile using Java Mission Control
-
-Download Java Mission Control from [here for OpenJDK](https://jdk.java.net/jmc/) or [here for Oracle](https://www.oracle.com/technetwork/java/javaseproducts/downloads/jmc7-downloads-5868868.html) since it's not part of the JDK 11 anymore.
-
-If you need to profile the service, use the following command to start the service
-
-> `java -XX:+FlightRecorder -jar target/covid-19-api.jar` 
-
-For offline profiling use
-
-> `java -XX:+FlightRecorder -XX:StartFlightRecording=duration=200s,filename=flight.jfr -jar target/covid-19-api.jar`
 
 

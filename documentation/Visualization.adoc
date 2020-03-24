@@ -1,0 +1,7 @@
+:source-highlighter: highlightjs
+:toc2:
+:toclevels: 2
+:imagesdir: ./res
+:Revision: version 1.0.0
+
+= Data Visualization

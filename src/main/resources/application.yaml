@@ -9,7 +9,7 @@ server:
       pattern: common
 
 data:
-  reload-interval: 3000
+  reload-interval: 3600000
   jhu:
     time-series:
       confirmed: https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv

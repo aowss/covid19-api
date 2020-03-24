@@ -4,17 +4,21 @@ import covid19.stats.micasa.com.domain.*;
 import covid19.stats.micasa.com.services.StatisticsService;
 
 import org.apache.commons.csv.*;
+import org.slf4j.*;
 
 import java.io.*;
 import java.net.URI;
 import java.net.http.*;
 import java.nio.charset.Charset;
 import java.time.*;
-import java.time.format.DateTimeFormatter;
+import java.time.format.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.*;
 import java.util.stream.*;
+
+import static covid19.stats.micasa.com.utils.CSVUtils.getAllRecords;
+import static covid19.stats.micasa.com.utils.ExceptionUtils.getMessage;
 
 import static java.util.stream.Collectors.*;
 
@@ -23,6 +27,9 @@ import static java.util.stream.Collectors.*;
  * The entire time series data is located in https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series.
  */
 public class JHStatisticsServiceImpl implements StatisticsService {
+
+    static Logger logger = LoggerFactory.getLogger(JHStatisticsServiceImpl.class);
+    static String parsingError = "Record number %d of %s [ %s ] is invalid : %s -> %s";
 
     private static final HttpClient httpClient = HttpClient.newBuilder().version(HttpClient.Version.HTTP_2).build();
     public static final int timeout = 30;
@@ -39,13 +46,13 @@ public class JHStatisticsServiceImpl implements StatisticsService {
     public CompletableFuture<Map<Location, SortedSet<Reading<Statistic>>>> loadStatistics() {
 
         var confirmedCF = get(confirmedUrl)
-                .thenApply(parse.andThen(index));
+                .thenApply(parse.apply("confirmed cases").andThen(index));
 
         var deathCF = get(deathsUrl)
-                .thenApply(parse.andThen(index));
+                .thenApply(parse.apply("death cases").andThen(index));
 
         var recoveredCF = get(recoveredUrl)
-                .thenApply(parse.andThen(index));
+                .thenApply(parse.apply("recovered cases").andThen(index));
 
         return CompletableFuture.allOf(confirmedCF, deathCF, recoveredCF)
                 .thenApply(done -> mergedEntries(confirmedCF.join(), deathCF.join(), recoveredCF.join()));
@@ -70,16 +77,6 @@ public class JHStatisticsServiceImpl implements StatisticsService {
                     }
                 );
 
-    }
-
-    public static Map<Location, SortedSet<Reading<Integer>>> formatStats(InputStream inputStream) {
-        return parse.apply(inputStream)
-                .collect(
-                    groupingBy(
-                        Reading::location,
-                        mapping(stat -> new Reading<Integer>(stat.location(), stat.date(), stat.value()), Collectors.toCollection(TreeSet::new))
-                    )
-                );
     }
 
     public static BiFunction<Location, LocalDate, Function<Map<Location, List<Reading<Integer>>>, Optional<Integer>>> getValue = (location, date) -> map -> {
@@ -126,7 +123,7 @@ public class JHStatisticsServiceImpl implements StatisticsService {
     public static Function<Stream<Reading<Integer>>, Map<Location, List<Reading<Integer>>>> index = stream -> stream
         .collect(groupingBy(Reading::location));
 
-    private static Function<InputStream, Stream<Reading<Integer>>> parse = inputStream -> {
+    private static Function<String, Function<InputStream, Stream<Reading<Integer>>>> parse = source -> inputStream -> {
 
         try {
 
@@ -135,14 +132,29 @@ public class JHStatisticsServiceImpl implements StatisticsService {
 
             return parser.getRecords().stream()
                 .map(record -> {
-                    Location location = new Location(record.get(1), record.get(0), Float.valueOf(record.get(2)), Float.valueOf(record.get(3)));
-                    return dates.stream()
-                            .map(date -> {
-                                LocalDate readingDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("M/d/yy"));
-                                Reading<Integer> reading = new Reading(location, readingDate, Integer.valueOf(record.get(date)));
-                                return reading;
-                            });
+                    try {
+                        Location location = new Location(record.get(1), record.get(0), Float.valueOf(record.get(2)), Float.valueOf(record.get(3)));
+                        return dates.stream()
+                                .map(date -> {
+                                    try {
+                                        LocalDate readingDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("M/d/yy"));
+                                        Reading<Integer> reading = new Reading(location, readingDate, Integer.valueOf(record.get(date)));
+                                        return reading;
+                                    } catch (DateTimeParseException dtpe) {
+                                        logger.warn(String.format(parsingError, record.getRecordNumber(), source, getAllRecords(record), "date can't be parsed: '" + date + "' is invalid", "date ignored for " + location));
+                                        return null;
+                                    } catch (NumberFormatException nfe) {
+                                        logger.warn(String.format(parsingError, record.getRecordNumber(), source, getAllRecords(record), "value can't be parsed: '" + record.get(date) + "' is invalid", date + " ignored for " + location));
+                                        return null;
+                                    }
+                                })
+                                .filter(Objects::nonNull);
+                    } catch (NumberFormatException nfe) {
+                        logger.warn(String.format(parsingError, record.getRecordNumber(), source, getAllRecords(record), "location can't be parsed: " + getMessage(nfe), "location ignored"));
+                        return null;
+                    }
                 })
+                .filter(Objects::nonNull)
                 .flatMap(Function.identity());
 
         } catch (IOException e) {

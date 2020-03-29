@@ -28,7 +28,7 @@ public class RetrieveStatistics {
                 .map(entry -> {
                     var readings = entry.getValue();
                     if (from.isPresent()) readings = readings.tailSet(new Reading<>(readings.first().location(), from.get(), null));
-                    if (to.isPresent()) readings = readings.headSet(new Reading<>(readings.first().location(), to.get(), null));
+                    if (to.isPresent()) readings = readings.headSet(new Reading<>(readings.first().location(), to.get().plusDays(1), null));
                     return Map.entry(entry.getKey(), readings);
                 })
                 .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));

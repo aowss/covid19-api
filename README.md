@@ -2,18 +2,45 @@
 
 I was inspired to create this by Nate Murray's email : `The Code of COVID-19 - Open-source projects to understand - and fight - the global pandemic`.
 
-The data is sourced from [Johns Hopkins CSSE's COVID-19 Data Repository](https://github.com/CSSEGISandData/COVID-19).
+Some good resources are :
 
-They also provide this dashboard to visualize the data : https://coronavirus.jhu.edu/map.html.
+* [Johns Hopkins CSSE's dashboard](https://coronavirus.jhu.edu/map.html)
+* [Le Monde analysis in French](https://www.lemonde.fr/les-decodeurs/article/2020/02/27/en-carte-visualisez-la-propagation-mondiale-de-l-epidemie-de-coronavirus_6031092_4355770.html)
+* [The Guardian's analysis](https://www.theguardian.com/world/2020/mar/27/coronavirus-mapped-map-which-countries-have-the-most-cases-and-deaths)
+* [Worldometer's summary](https://www.worldometers.info/coronavirus/)
+* [Ontario's details](https://www.ontario.ca/page/2019-novel-coronavirus?utm_source=Google&utm_medium=CPC&utm_campaign=COVID-19)
+* [Another dashboard](https://www.gohkokhan.com/corona-virus-interactive-dashboard-tweaked/)
+* [Configurable visualiztion](http://91-divoc.com/pages/covid-visualization/)
+* [Predictions notebook](https://www.kaggle.com/yuanquan/covid-19-prediction-by-country-and-province)
+* [Video of the evolution over time](https://prateekiiest.github.io/COVID-19-Analysis/)
+* [Sources comparison](https://ourworldindata.org/covid-sources-comparison)
+* [Trends](https://aatishb.com/covidtrends/)
+* [Le Monde trend Analysis in French](https://www.lemonde.fr/les-decodeurs/article/2020/03/27/coronavirus-visualisez-les-pays-qui-ont-aplati-la-courbe-de-l-infection-et-ceux-qui-n-y-sont-pas-encore-parvenus_6034627_4355770.html)
+* [Data Scraper](https://coronadatascraper.com/#home)
+* [API](https://corona-api-landingpage.netlify.com/)
+* [Different Data Sets](https://github.com/cipriancraciun/covid19-datasets)
+* [European Centre for Disease Prevention and Control](https://www.ecdc.europa.eu/en/publications-data/download-todays-data-geographic-distribution-covid-19-cases-worldwide) 's [Data in JSON format](https://opendata.ecdc.europa.eu/covid19/casedistribution/json/)
+
+## Data Source
+
+The data is sourced from [Johns Hopkins CSSE's COVID-19 Data Repository](https://github.com/CSSEGISandData/COVID-19).  
+
+The problem with this source is that the format keeps changing and is inconsistent :
+* the recovered cases are not reported anymore
+* file names change
+* some files are, at some point in time, not well-formed
+* some countries that are broken down in regions have a summary in the file, e.g. `France`, and some don't, e.g. `Canada`
+* `Canada` has an entry where the region is named `Recovered` !
+* for some reason, `US` has a separate file
+
+Other sources might be worth considering :
+* https://github.com/cipriancraciun/covid19-datasets
 
 ## Implementation
 
 ### Java & Spring versions
 
 * This project uses Java 14 and the latest [Spring Boot](https://spring.io/projects/spring-boot) version.
-
-At the time of this writing, the only version of Spring Boot that supports Java 14 is `2.3.0.M2`.  
-Versions `2.2.5-RELEASE` or `2.3.0.M3` will throw this exception : `java.lang.UnsupportedOperationException: This feature requires ASM8_EXPERIMENTAL`
 
 * Version `3.0.0-M4` of the `surefire` plugin is needed to run the tests.
 

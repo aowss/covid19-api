@@ -5,6 +5,8 @@ I was inspired to create this by Nate Murray's email : `The Code of COVID-19 - O
 Some good resources are :
 
 * [Johns Hopkins CSSE's dashboard](https://coronavirus.jhu.edu/map.html)
+* [Open COVID-19 Data](https://github.com/open-covid-19/data)
+* [Bloomberg's Dashboard](https://www.bloomberg.com/graphics/2020-coronavirus-cases-world-map/?utm_source=facebook&utm_medium=cpc&utm_campaign=covid19&utm_content=tofu&fbclid=IwAR0UgjaNWvouJAPggGdA6VnogRuCM2SPWePRKYcfSeF3coYcgqS5DepTYXw)
 * [Le Monde analysis in French](https://www.lemonde.fr/les-decodeurs/article/2020/02/27/en-carte-visualisez-la-propagation-mondiale-de-l-epidemie-de-coronavirus_6031092_4355770.html)
 * [The Guardian's analysis](https://www.theguardian.com/world/2020/mar/27/coronavirus-mapped-map-which-countries-have-the-most-cases-and-deaths)
 * [Worldometer's summary](https://www.worldometers.info/coronavirus/)
@@ -35,6 +37,10 @@ The problem with this source is that the format keeps changing and is inconsiste
 
 Other sources might be worth considering :
 * https://github.com/cipriancraciun/covid19-datasets
+
+### Validation
+
+The country name and the region name is validated against https://open-covid-19.github.io/data/metadata.csv.
 
 ## Implementation
 

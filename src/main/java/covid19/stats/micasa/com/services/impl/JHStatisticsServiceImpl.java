@@ -30,6 +30,15 @@ public class JHStatisticsServiceImpl implements StatisticsService {
 
     static Logger logger = LoggerFactory.getLogger(JHStatisticsServiceImpl.class);
     static String parsingError = "Record number %d of %s [ %s ] is invalid : %s -> %s";
+    static String discardedEntry = "Record number %d of %s [ %s ] is discarded";
+
+    static Set<Location> locationsToDiscard = Set.of(
+        new Location("Canada", "Recovered"),
+        new Location("Canada", "Diamond Princess"),
+        new Location("Canada", "Grand Princess"),
+        new Location("Diamond Princess", ""),
+        new Location("MS Zaandam", "")
+    );
 
     private static final HttpClient httpClient = HttpClient.newBuilder().version(HttpClient.Version.HTTP_2).build();
     public static final int timeout = 30;
@@ -134,6 +143,10 @@ public class JHStatisticsServiceImpl implements StatisticsService {
                 .map(record -> {
                     try {
                         Location location = new Location(record.get(1), record.get(0), Float.valueOf(record.get(2)), Float.valueOf(record.get(3)));
+                        if (locationsToDiscard.contains(location)) {
+                            logger.warn(String.format(discardedEntry, record.getRecordNumber(), source, location));
+                            return null;
+                        }
                         return dates.stream()
                                 .map(date -> {
                                     try {

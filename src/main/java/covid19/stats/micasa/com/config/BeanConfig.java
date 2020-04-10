@@ -2,9 +2,11 @@ package covid19.stats.micasa.com.config;
 
 import covid19.stats.micasa.com.activities.*;
 import covid19.stats.micasa.com.repositories.StatisticsRepository;
+import covid19.stats.micasa.com.services.LocationsService;
 import covid19.stats.micasa.com.services.StatisticsService;
 import covid19.stats.micasa.com.services.impl.JHStatisticsServiceImpl;
 
+import covid19.stats.micasa.com.services.impl.ResourcesLocationsServiceImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 
@@ -26,8 +28,8 @@ public class BeanConfig {
     }
 
     @Bean
-    public LoadStatistics loadStatistics(StatisticsRepository repository, StatisticsService service) {
-        return new LoadStatistics(repository, service);
+    public LoadStatistics loadStatistics(StatisticsRepository repository, StatisticsService statisticsService, LocationsService locationsService) {
+        return new LoadStatistics(repository, statisticsService, locationsService);
     }
 
     @Bean
@@ -38,6 +40,11 @@ public class BeanConfig {
     @Bean
     public StatisticsService statsService() {
         return new JHStatisticsServiceImpl(confirmedUrl, deathsUrl, recoveredUrl);
+    }
+
+    @Bean
+    public LocationsService locationsService() {
+        return new ResourcesLocationsServiceImpl();
     }
 
 }

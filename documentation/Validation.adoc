@@ -1,0 +1,110 @@
+:source-highlighter: highlightjs
+:toc2:
+:toclevels: 2
+:imagesdir: ./res
+:Revision: version 1.0.0
+
+== Location Breakdown
+
+The following countries have a list of xref:dependencies[dependencies] and a value for the country's mainland on its own : 
+
+* `Denmark`
+* `France`
+* `Netherlands`
+* `United Kingdom`
+
+The following countries have a breakdown per region but don't have an aggregated value : 
+
+* `Australia`
+* `Canada`
+* `China`
+
+The breakdown per region for the `United States of America` is in a separate file.
+
+=== United States of America
+
+== Location Validation
+
+=== Naming Conflicts
+
+[cols=".^2,.^2,.^2,.^2,.^2,.^1,.^1,.^1,.^2", options="header"]
+|===
+ 2+^| https://github.com/CSSEGISandData/COVID-19[Johns Hopkins]  2+^| https://open-covid-19.github.io/data/metadata.csv[Open COVID-19]           2+^| https://www.iso.org/standard/63545.html[ISO 3166:1]    2+^| https://www.iso.org/standard/63546.html[ISO 3166:2]  ^| Note
+  ^s| Country                 ^s| Province                        ^s| Country Name                    ^s| Region Name                             ^s| Short name lower case               ^s| Alpha-2 code    ^s| Subdivision name                        ^s| Code      |
+
+    | Sao Tome and Principe     |                                   | São Tomé and Príncipe             |                                           | Sao Tome and Principe                 | ST                |                                           |           | Keep Johns Hopkins' value
+    | Korea, South              |                                   | South Korea                       |                                           | Korea (the Republic of)               | KR                |                                           |           | Map to Open COVID-19's value
+    | Eswatini                  |                                   |                                   |                                           | Eswatini                              | SZ                |                                           |           | Keep Johns Hopkins' value
+ .2+| West Bank and Gaza     .2+|                                   | Gaza Strip                        |                                           | Palestine                             | PS                | Gaza                                      | PS-GZA .2+| Map to Open COVID-19's Palestine
+                                                                    | Palestine                         |                                           | Palestine                             | PS                |                                           |
+    | Cote d'Ivoire             |                                   | Ivory Coast                       |                                           | Côte d'Ivoire                         | CI                |                                           |           | Map to Open COVID-19's value
+ .2+| Taiwan*                .2+|                                   | China                             | Taiwan                                    | China                                 | CN                | Taiwan                                    | CN-TW  .2+| Map to Open COVID-19's Taiwan
+                                                                    | Taiwan                            |                                           | Taiwan                                | TW                |                                           |
+    | Timor-Leste               |                                   | East Timor                        |                                           | Timor-Leste                           | TL                |                                           |           | Keep Johns Hopkins' value  
+    | South Sudan               |                                   |                                   |                                           | South Sudan                           | SS                |                                           |           | Keep Johns Hopkins' value
+    | North Macedonia           |                                   |                                   |                                           | North Macedonia                       | MK                |                                           |           | Keep Johns Hopkins' value
+    | US                        |                                   | United States of America          |                                           | United States of America (the)        | US                |                                           |           | Map to Open COVID-19's value
+    | Holy See                  |                                   |                                   |                                           | Holy See (the)                        | VA                |                                           |           | Keep Johns Hopkins' value
+    | Burma                     |                                   | Myanmar                           |                                           | Myanmar footnote:[formerly Burma, BU] | MM                |                                           |           | Map to Open COVID-19's value
+    | Cabo Verde                |                                   | Cape Verde                        |                                           | Cabo Verde                            | CV                |                                           |           | Keep Johns Hopkins' value
+    | Czechia                   |                                   | Czech Republic                    |                                           | Czechia                               | CZ                |                                           |           | Keep Johns Hopkins' value
+    | Congo (Kinshasa)          |                                   | Democratic Republic of the Congo  |                                           | Congo (the Democratic Republic of the)| CD                |                                           |           | Map to Open COVID-19's value
+    | Congo (Brazzaville)       |                                   | Republic of the Congo             |                                           | Congo (the)                           | CG                |                                           |           | Map to Open COVID-19's value
+|===
+
+[[dependencies]]
+=== Dependencies
+
+As mentioned in https://en.wikipedia.org/wiki/ISO_3166-2#Subdivisions_included_in_ISO_3166-1[Wikipedia's ISO 3166-2 page], all the following are dependent territories, and have both an ISO 3166-1 and an ISO 3166-2 code. +
+We will consider them dependent territories and use both a country and a province for them, as does John Hopkins.
+
+Netherlands ::
+
+* `Sint Maarten`
+* `Bonaire, Sint Eustatius and Saba`
+* `Curacao`
+* `Aruba`
+
+France ::
+
+* `Saint Barthelemy`
+* `French Polynesia`
+* `Reunion`
+* `Saint Pierre and Miquelon`
+* `St Martin`
+* `New Caledonia`
+
+As mentioned in https://en.wikipedia.org/wiki/Denmark[Wikipedia's Denmark page], the following are autonomous territories. +
+Even though they only have an ISO 3166-1 code, we will consider them dependent territories and use both a country and a province for them, as does John Hopkins.
+
+* `Faroe Islands`
+* `Greenland`
+
+As mentioned in https://en.wikipedia.org/wiki/British_Overseas_Territories[Wikipedia's British Overseas Territories page], all the following are British overseas territories or Crown dependencies. +
+Even though they only have an ISO 3166-1 code, we will consider them dependent territories and use both a country and a province for them, as does John Hopkins.
+
+British overseas territories ::
+
+* `Bermuda`
+* `Turks and Caicos Islands`
+* `Cayman Islands`
+* `Montserrat`
+* `Anguilla`
+* `Falkland Islands (Malvinas)`
+* `Gibraltar`
+* `British Virgin Islands`
+
+Crown dependencies ::
+
+* `Channel Islands` footnote:[mainly Jersey and Guernsey]
+* `Isle of Man`
+
+=== Invalid Entries
+
+The following entry : `Canada / Recovered` is just a mistake and is discarded. +
+It has no cases ever reported.
+
+=== Cruises
+
+The following entries : `Canada /  Diamond Princess` footnote:cruise[it is not clear why it was linked to `Canada`], `Canada / Grand Princess` footnote:cruise[], `Diamond Princess` and `MS Zaandam` are cruises and are discarded. +
+The cases / deaths reported will not appear in the count.

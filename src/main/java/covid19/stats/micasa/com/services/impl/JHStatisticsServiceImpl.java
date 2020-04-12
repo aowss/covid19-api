@@ -48,7 +48,7 @@ public class JHStatisticsServiceImpl implements StatisticsService {
     public JHStatisticsServiceImpl(String confirmedUrl, String deathsUrl, String recoveredUrl) {
         this.confirmedUrl = confirmedUrl;
         this.deathsUrl = deathsUrl;
-        this.recoveredUrl = confirmedUrl;
+        this.recoveredUrl = recoveredUrl;
     }
 
     @Override

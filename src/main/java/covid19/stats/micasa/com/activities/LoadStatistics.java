@@ -2,18 +2,13 @@ package covid19.stats.micasa.com.activities;
 
 import covid19.stats.micasa.com.domain.Location;
 import covid19.stats.micasa.com.repositories.StatisticsRepository;
-import covid19.stats.micasa.com.services.LocationsService;
-import covid19.stats.micasa.com.services.StatisticsService;
+import covid19.stats.micasa.com.services.*;
 
 import org.slf4j.*;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.BiPredicate;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.UnaryOperator;
+import java.util.*;
+import java.util.function.*;
 
 import static covid19.stats.micasa.com.utils.ExceptionUtils.getMessage;
 

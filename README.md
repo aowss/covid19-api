@@ -48,6 +48,11 @@ The country name and the region name is validated against https://open-covid-19.
 
 * This project uses Java 14 and the latest [Spring Boot](https://spring.io/projects/spring-boot) version.
 
+At the time of this writing, the only version of Spring Boot that supports Java 14 properly, i.e. including unit testing,  is `2.3.0.M4`.  
+
+Version `2.2.5-RELEASE` throws this exception : `java.lang.UnsupportedOperationException: This feature requires ASM8_EXPERIMENTAL`  
+Version `2.2.6-RELEASE` doesn't run the unit tests.
+
 * Version `3.0.0-M4` of the `surefire` plugin is needed to run the tests.
 
 ### Flow

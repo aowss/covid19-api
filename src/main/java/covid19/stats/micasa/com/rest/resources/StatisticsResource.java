@@ -37,13 +37,30 @@ public class StatisticsResource {
     }
 
     @GetMapping(value = "stats")
-    public ResponseEntity<Map<Location, SortedSet<Reading<Statistic>>>> stats(@RequestParam("location") Optional<String> location,
-                                                                              @RequestParam("from") Optional<LocalDate> from,
-                                                                              @RequestParam("to") Optional<LocalDate> to) {
+    public ResponseEntity<Map<Location, SortedSet<Reading<Statistic>>>> countryStats(@RequestParam("location") Optional<String> location,
+                                                                                     @RequestParam("from") Optional<LocalDate> from,
+                                                                                     @RequestParam("to") Optional<LocalDate> to) {
 
         var start = System.nanoTime();
 
-        var response = ResponseEntity.ok(retrieveStatistics.retrieve(location, from, to));
+        var response = ResponseEntity.ok(retrieveStatistics.retrieveCountryStatistics(location, from, to));
+
+        var duration = ( System.nanoTime() - start ) / 1_000_000;
+        CompletableFuture.runAsync(() -> logger.info(String.format("retrieve the statistics [ duration = %d ms ] [ location = %s, from = %s, to = %s ]", duration, location.orElse("n/a"), from.orElse(null), to.orElse(null))));
+
+        return response;
+
+    }
+
+
+    @GetMapping(value = "stats", produces = "application/vnd.rogers.service.no-links+json")
+    public ResponseEntity<Map<Location, SortedSet<Reading<Statistic>>>> countryBreakdownStats(@RequestParam("location") Optional<String> location,
+                                                                                              @RequestParam("from") Optional<LocalDate> from,
+                                                                                              @RequestParam("to") Optional<LocalDate> to) {
+
+        var start = System.nanoTime();
+
+        var response = ResponseEntity.ok(retrieveStatistics.retrieveCountryStatistics(location, from, to));
 
         var duration = ( System.nanoTime() - start ) / 1_000_000;
         CompletableFuture.runAsync(() -> logger.info(String.format("retrieve the statistics [ duration = %d ms ] [ location = %s, from = %s, to = %s ]", duration, location.orElse("n/a"), from.orElse(null), to.orElse(null))));

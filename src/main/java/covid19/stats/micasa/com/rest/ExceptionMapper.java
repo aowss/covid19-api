@@ -16,4 +16,10 @@ public class ExceptionMapper extends ResponseEntityExceptionHandler {
         ex.printStackTrace();
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(value = { IllegalArgumentException.class })
+    String invalidQueryParameters(IllegalArgumentException ex, WebRequest request) {
+        return ex.getMessage();
+    }
+
 }

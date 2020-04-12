@@ -6,6 +6,10 @@ import java.util.Objects;
 
 public record Location(@JsonProperty String country, @JsonProperty String province, float latitude, float longitude) implements Comparable<Location> {
 
+    public Location(String country) {
+        this(country, "");
+    }
+
     public Location(String country, String province) {
         this(country, province, 0,0);
     }

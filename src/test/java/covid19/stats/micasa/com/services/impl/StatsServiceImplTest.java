@@ -14,14 +14,16 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
-@DisplayName("Stats Service")
-public class StatisticsServiceImplTest {
+@DisplayName("Johns Hopkins Old Data Format")
+public class StatsServiceImplTest {
+
+    public static final String folder = "src/test/resources/johns-hopkins/old-format";
 
     @Test
     @DisplayName("Mapping from Johns Hopkins CSSE format to internal format")
     public void map() throws IOException {
 
-        var is = new FileInputStream("src/test/resources/time_series_19-covid-Confirmed.csv");
+        var is = new FileInputStream(folder + "/time_series_19-covid-Confirmed.csv");
         Map<Location, SortedSet<Reading<Integer>>> output = StatsServiceImpl.formatStats(is);
 
         assertThat("There are 463 locations", output.keySet().size(), is(463));
@@ -38,9 +40,9 @@ public class StatisticsServiceImplTest {
     public void sameFormat() throws IOException {
 
         var files = List.of(
-            new FileInputStream("src/test/resources/time_series_19-covid-Confirmed.csv"),
-            new FileInputStream("src/test/resources/time_series_19-covid-Deaths.csv"),
-            new FileInputStream("src/test/resources/time_series_19-covid-Recovered.csv")
+            new FileInputStream(folder + "/time_series_19-covid-Confirmed.csv"),
+            new FileInputStream(folder + "/time_series_19-covid-Deaths.csv"),
+            new FileInputStream(folder + "/time_series_19-covid-Recovered.csv")
         );
 
         assertThat("Different files have different dates", files.stream().map(StatsServiceImpl::formatStats).map(Map::values).map(Collection::size).distinct().count(), is(not(1L)));
@@ -52,9 +54,9 @@ public class StatisticsServiceImplTest {
     public void locations() throws IOException {
 
         var files = List.of(
-            new FileInputStream("src/test/resources/time_series_19-covid-Confirmed.csv"),
-            new FileInputStream("src/test/resources/time_series_19-covid-Deaths.csv"),
-            new FileInputStream("src/test/resources/time_series_19-covid-Recovered.csv")
+            new FileInputStream(folder + "/time_series_19-covid-Confirmed.csv"),
+            new FileInputStream(folder + "/time_series_19-covid-Deaths.csv"),
+            new FileInputStream(folder + "/time_series_19-covid-Recovered.csv")
         );
 
         assertThat("Different files have different locations", files.stream().map(StatsServiceImpl::formatStats).map(Map::keySet).map(Set::size).distinct().count(), is(not(1L)));

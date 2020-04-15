@@ -43,6 +43,10 @@ Other sources might be worth considering :
 
 The country name and the region name is validated against https://open-covid-19.github.io/data/metadata.csv.
 
+### Official Sources
+
+* France : [Government Portal](https://www.gouvernement.fr/info-coronavirus/carte-et-donnees) [ same as [Government Dashboard](https://dashboard.covid19.data.gouv.fr) ] or [Santé Publique](https://www.santepubliquefrance.fr/maladies-et-traumatismes/maladies-et-infections-respiratoires/infection-a-coronavirus/articles/infection-au-nouveau-coronavirus-sars-cov-2-covid-19-france-et-monde)
+
 ## Implementation
 
 ### Java & Spring versions

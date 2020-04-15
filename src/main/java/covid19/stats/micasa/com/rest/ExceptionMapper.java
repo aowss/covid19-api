@@ -1,5 +1,6 @@
 package covid19.stats.micasa.com.rest;
 
+import covid19.stats.micasa.com.domain.exceptions.InvalidFilterException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
@@ -17,8 +18,8 @@ public class ExceptionMapper extends ResponseEntityExceptionHandler {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(value = { IllegalArgumentException.class })
-    String invalidQueryParameters(IllegalArgumentException ex, WebRequest request) {
+    @ExceptionHandler(value = { InvalidFilterException.class })
+    String invalidQueryParameters(InvalidFilterException ex, WebRequest request) {
         return ex.getMessage();
     }
 

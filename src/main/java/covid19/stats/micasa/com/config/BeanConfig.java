@@ -4,7 +4,7 @@ import covid19.stats.micasa.com.activities.*;
 import covid19.stats.micasa.com.repositories.StatisticsRepository;
 import covid19.stats.micasa.com.services.LocationsService;
 import covid19.stats.micasa.com.services.StatisticsService;
-import covid19.stats.micasa.com.services.impl.JHStatisticsServiceImpl;
+import covid19.stats.micasa.com.services.impl.JohnsHopkinsStatisticsServiceImpl;
 
 import covid19.stats.micasa.com.services.impl.ResourcesLocationsServiceImpl;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,7 +39,7 @@ public class BeanConfig {
 
     @Bean
     public StatisticsService statsService() {
-        return new JHStatisticsServiceImpl(confirmedUrl, deathsUrl, recoveredUrl);
+        return new JohnsHopkinsStatisticsServiceImpl(confirmedUrl, deathsUrl, recoveredUrl);
     }
 
     @Bean

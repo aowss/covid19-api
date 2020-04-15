@@ -26,13 +26,13 @@ import static java.util.stream.Collectors.*;
  * Loading data from Johns Hopkins CSSE
  * The entire time series data is located in https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series.
  */
-public class JHStatisticsServiceImpl implements StatisticsService {
+public class JohnsHopkinsStatisticsServiceImpl implements StatisticsService {
 
-    static Logger logger = LoggerFactory.getLogger(JHStatisticsServiceImpl.class);
-    static String parsingError = "Record number %d of %s [ %s ] is invalid : %s -> %s";
-    static String discardedEntry = "Record number %d of %s [ %s ] is discarded";
+    private static final Logger logger = LoggerFactory.getLogger(JohnsHopkinsStatisticsServiceImpl.class);
+    private static final String parsingError = "Record number %d of %s [ %s ] is invalid : %s -> %s";
+    private static final String discardedEntry = "Record number %d of %s [ %s ] is discarded";
 
-    static Set<Location> locationsToDiscard = Set.of(
+    private static final Set<Location> locationsToDiscard = Set.of(
         new Location("Canada", "Recovered"),
         new Location("Canada", "Diamond Princess"),
         new Location("Canada", "Grand Princess"),
@@ -41,11 +41,11 @@ public class JHStatisticsServiceImpl implements StatisticsService {
     );
 
     private static final HttpClient httpClient = HttpClient.newBuilder().version(HttpClient.Version.HTTP_2).build();
-    public static final int timeout = 30;
+    private static final int timeout = 30;
 
     private String confirmedUrl, deathsUrl, recoveredUrl;
 
-    public JHStatisticsServiceImpl(String confirmedUrl, String deathsUrl, String recoveredUrl) {
+    public JohnsHopkinsStatisticsServiceImpl(String confirmedUrl, String deathsUrl, String recoveredUrl) {
         this.confirmedUrl = confirmedUrl;
         this.deathsUrl = deathsUrl;
         this.recoveredUrl = recoveredUrl;
@@ -64,11 +64,11 @@ public class JHStatisticsServiceImpl implements StatisticsService {
                 .thenApply(parse.apply("recovered cases").andThen(index));
 
         return CompletableFuture.allOf(confirmedCF, deathCF, recoveredCF)
-                .thenApply(done -> mergedEntries(confirmedCF.join(), deathCF.join(), recoveredCF.join()));
+                .thenApply(done -> mergeEntries(confirmedCF.join(), deathCF.join(), recoveredCF.join()));
 
     }
 
-    public CompletableFuture<InputStream> get(String url) {
+    private static CompletableFuture<InputStream> get(String url) {
 
         HttpRequest request = HttpRequest
                 .newBuilder()
@@ -88,14 +88,17 @@ public class JHStatisticsServiceImpl implements StatisticsService {
 
     }
 
-    public static BiFunction<Location, LocalDate, Function<Map<Location, List<Reading<Integer>>>, Optional<Integer>>> getValue = (location, date) -> map -> {
+    private static Function<Stream<Reading<Integer>>, Map<Location, List<Reading<Integer>>>> index = stream -> stream
+        .collect(groupingBy(Reading::location));
+
+    static BiFunction<Location, LocalDate, Function<Map<Location, List<Reading<Integer>>>, Optional<Integer>>> getValue = (location, date) -> map -> {
         if (!map.containsKey(location)) return Optional.empty();
         return map.get(location).stream().filter(reading -> reading.date().equals(date)).map(Reading::value).findFirst();
     };
 
-    public static Map<Location, SortedSet<Reading<Statistic>>> mergedEntries(Map<Location, List<Reading<Integer>>> confirmed,
-                                                                             Map<Location, List<Reading<Integer>>> death,
-                                                                             Map<Location, List<Reading<Integer>>> recovered) {
+    static Map<Location, SortedSet<Reading<Statistic>>> mergeEntries(Map<Location, List<Reading<Integer>>> confirmed,
+                                                                            Map<Location, List<Reading<Integer>>> death,
+                                                                            Map<Location, List<Reading<Integer>>> recovered) {
 
         //  All the maps don't have the exact same locations or dates
         Set<Location> allLocations = new HashSet<>(confirmed.keySet());
@@ -129,10 +132,7 @@ public class JHStatisticsServiceImpl implements StatisticsService {
 
     }
 
-    public static Function<Stream<Reading<Integer>>, Map<Location, List<Reading<Integer>>>> index = stream -> stream
-        .collect(groupingBy(Reading::location));
-
-    private static Function<String, Function<InputStream, Stream<Reading<Integer>>>> parse = source -> inputStream -> {
+    static Function<String, Function<InputStream, Stream<Reading<Integer>>>> parse = source -> inputStream -> {
 
         try {
 

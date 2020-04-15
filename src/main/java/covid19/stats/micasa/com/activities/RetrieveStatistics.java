@@ -1,13 +1,11 @@
 package covid19.stats.micasa.com.activities;
 
-import covid19.stats.micasa.com.domain.Location;
-import covid19.stats.micasa.com.domain.Reading;
-import covid19.stats.micasa.com.domain.Statistic;
+import covid19.stats.micasa.com.domain.*;
+import covid19.stats.micasa.com.domain.exceptions.InvalidFilterException;
 import covid19.stats.micasa.com.repositories.StatisticsRepository;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toMap;
@@ -75,7 +73,7 @@ public class RetrieveStatistics {
             }
         });
         if (!messages.isEmpty()) {
-            throw new IllegalArgumentException(messages.stream().collect(Collectors.joining("; ", "[ ", " ]")));
+            throw new InvalidFilterException(messages);
         }
     }
 

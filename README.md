@@ -5,6 +5,7 @@ I was inspired to create this by Nate Murray's email : `The Code of COVID-19 - O
 Some good resources are :
 
 * [Johns Hopkins CSSE's dashboard](https://coronavirus.jhu.edu/map.html)
+* [Data Hub](https://datahub.io/core/covid-19)
 * [Open COVID-19 Data](https://github.com/open-covid-19/data)
 * [Bloomberg's Dashboard](https://www.bloomberg.com/graphics/2020-coronavirus-cases-world-map/?utm_source=facebook&utm_medium=cpc&utm_campaign=covid19&utm_content=tofu&fbclid=IwAR0UgjaNWvouJAPggGdA6VnogRuCM2SPWePRKYcfSeF3coYcgqS5DepTYXw)
 * [Le Monde analysis in French](https://www.lemonde.fr/les-decodeurs/article/2020/02/27/en-carte-visualisez-la-propagation-mondiale-de-l-epidemie-de-coronavirus_6031092_4355770.html)

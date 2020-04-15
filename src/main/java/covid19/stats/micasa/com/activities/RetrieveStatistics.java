@@ -25,7 +25,23 @@ public class RetrieveStatistics {
         validateFilters(location, from, to);
 
         return filter(statisticsRepository, location, from, to)
-                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .collect(
+                    toMap(
+                        entry -> new Location(entry.getKey().country()),
+                        entry -> entry.getValue(),
+                        (existingReadings, newReadings) -> {
+                            SortedSet<Reading<Statistic>> result = new TreeSet<>();
+                            var existingIterator = existingReadings.iterator();
+                            var newIterator = newReadings.iterator();
+                            while (existingIterator.hasNext()) {
+                                var existingReading = existingIterator.next();
+                                var newReading = newIterator.next();
+                                result.add(new Reading<Statistic>(existingReading.location(), existingReading.date(), existingReading.value().add(newReading.value())));
+                            }
+                            return result;
+                        }
+                    )
+                );
 
     }
 

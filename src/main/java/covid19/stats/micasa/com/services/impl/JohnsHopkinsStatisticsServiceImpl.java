@@ -23,14 +23,19 @@ import static covid19.stats.micasa.com.utils.ExceptionUtils.getMessage;
 import static java.util.stream.Collectors.*;
 
 /**
- * Loading data from Johns Hopkins CSSE
+ * Loading data from Johns Hopkins CSSE.
  * The entire time series data is located in https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series.
+ * The US brekdown is in separate files and doesn't contain recovered cases.
+ * Each file contains the same dates.
+ * The locations in the recovered or deaths files are a subset of the ones in the confirmed file.
  */
 public class JohnsHopkinsStatisticsServiceImpl implements StatisticsService {
 
     private static final Logger logger = LoggerFactory.getLogger(JohnsHopkinsStatisticsServiceImpl.class);
     private static final String parsingError = "Record number %d of %s [ %s ] is invalid : %s -> %s";
     private static final String discardedEntry = "Record number %d of %s [ %s ] is discarded";
+    private static final String unexpectedHeader = "The date header [ %s ] is invalid : this date will be ignored for all records";
+    private static final String unexpectedData = "The data doesn't conform to the assumptions : %s";
 
     private static final Set<Location> locationsToDiscard = Set.of(
         new Location("Canada", "Recovered"),
@@ -88,7 +93,7 @@ public class JohnsHopkinsStatisticsServiceImpl implements StatisticsService {
 
     }
 
-    private static Function<Stream<Reading<Integer>>, Map<Location, List<Reading<Integer>>>> index = stream -> stream
+    static Function<Stream<Reading<Integer>>, Map<Location, List<Reading<Integer>>>> index = stream -> stream
         .collect(groupingBy(Reading::location));
 
     static BiFunction<Location, LocalDate, Function<Map<Location, List<Reading<Integer>>>, Optional<Integer>>> getValue = (location, date) -> map -> {
@@ -97,17 +102,23 @@ public class JohnsHopkinsStatisticsServiceImpl implements StatisticsService {
     };
 
     static Map<Location, SortedSet<Reading<Statistic>>> mergeEntries(Map<Location, List<Reading<Integer>>> confirmed,
-                                                                            Map<Location, List<Reading<Integer>>> death,
-                                                                            Map<Location, List<Reading<Integer>>> recovered) {
+                                                                     Map<Location, List<Reading<Integer>>> death,
+                                                                     Map<Location, List<Reading<Integer>>> recovered) {
 
-        //  All the maps don't have the exact same locations or dates
+        /*
+        All the maps don't have the exact same locations.
+        The locations might be different or the granularity might be different, i.e. the confirmed cases are broken down by province but not the recovered ones.
+         */
         Set<Location> allLocations = new HashSet<>(confirmed.keySet());
         allLocations.addAll(death.keySet());
         allLocations.addAll(recovered.keySet());
 
+        //  All the maps don't have the exact same dates ?
         Set<LocalDate> allDates = confirmed.values().stream().flatMap(List::stream).map(Reading::date).collect(toSet());
-        allDates.addAll(death.values().stream().flatMap(List::stream).map(Reading::date).collect(toSet()));
-        allDates.addAll(recovered.values().stream().flatMap(List::stream).map(Reading::date).collect(toSet()));
+        boolean differentDeathDates = allDates.addAll(death.values().stream().flatMap(List::stream).map(Reading::date).collect(toSet()));
+        if (differentDeathDates) logger.warn(String.format(unexpectedData, "the deaths dates are different from the confirmed cases dates"));
+        boolean differentRecoveredDates = allDates.addAll(recovered.values().stream().flatMap(List::stream).map(Reading::date).collect(toSet()));
+        if (differentRecoveredDates) logger.warn(String.format(unexpectedData, "the recovered dates are different from the confirmed cases dates"));
 
         return allLocations.stream()
             .collect(
@@ -115,32 +126,51 @@ public class JohnsHopkinsStatisticsServiceImpl implements StatisticsService {
                     Function.identity(),
                     location -> allDates.stream()
                         .map(date -> {
-                                var value = getValue.apply(location, date);
-                                return new Reading<>(
-                                    location,
-                                    date,
-                                    new Statistic(
-                                        value.apply(confirmed).orElse(-1),
-                                        value.apply(death).orElse(-1),
-                                        value.apply(recovered).orElse(-1)
-                                    )
-                                );
-                            })
+                            var value = getValue.apply(location, date);
+                            return new Reading<>(
+                                location,
+                                date,
+                                new Statistic(
+                                    value.apply(confirmed).orElse(0),
+                                    value.apply(death).orElse(0),
+                                    value.apply(recovered).orElse(0)
+                                )
+                            );
+                        })
                         .collect(Collectors.toCollection(TreeSet::new))
                 )
             );
 
     }
 
+    private static Function<String, Function<String, LocalDate>> parseDate = pattern -> {
+        var formatter = DateTimeFormatter.ofPattern(pattern);
+        return date -> {
+            try {
+                return LocalDate.parse(date, formatter);
+            } catch (DateTimeParseException dtpe) {
+                logger.warn(String.format(unexpectedHeader, date));
+                return null;
+            }
+        };
+    };
+
     static Function<String, Function<InputStream, Stream<Reading<Integer>>>> parse = source -> inputStream -> {
 
         try {
 
             CSVParser parser = CSVParser.parse(inputStream, Charset.forName("UTF-8"), CSVFormat.DEFAULT.withFirstRecordAsHeader());
-            List<String> dates = parser.getHeaderNames().subList(4, parser.getHeaderNames().size());
+
+            List<LocalDate> dates = parser.getHeaderNames().subList(4, parser.getHeaderNames().size())
+                    .stream()
+                    .map(parseDate.apply("M/d/yy"))
+                    .filter(Objects::nonNull)
+                    .collect(toList());
+
+            var formatter = DateTimeFormatter.ofPattern("M/d/yy");
 
             return parser.getRecords().stream()
-                .map(record -> {
+                .flatMap(record -> {
                     try {
                         Location location = new Location(record.get(1), record.get(0), Float.valueOf(record.get(2)), Float.valueOf(record.get(3)));
                         if (locationsToDiscard.contains(location)) {
@@ -148,27 +178,22 @@ public class JohnsHopkinsStatisticsServiceImpl implements StatisticsService {
                             return null;
                         }
                         return dates.stream()
-                                .map(date -> {
-                                    try {
-                                        LocalDate readingDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("M/d/yy"));
-                                        Reading<Integer> reading = new Reading(location, readingDate, Integer.valueOf(record.get(date)));
-                                        return reading;
-                                    } catch (DateTimeParseException dtpe) {
-                                        logger.warn(String.format(parsingError, record.getRecordNumber(), source, getAllRecords(record), "date can't be parsed: '" + date + "' is invalid", "date ignored for " + location));
-                                        return null;
-                                    } catch (NumberFormatException nfe) {
-                                        logger.warn(String.format(parsingError, record.getRecordNumber(), source, getAllRecords(record), "value can't be parsed: '" + record.get(date) + "' is invalid", date + " ignored for " + location));
-                                        return null;
-                                    }
-                                })
-                                .filter(Objects::nonNull);
+                            .map(date -> {
+                                var dateHeader = date.format(formatter);
+                                try {
+                                    return new Reading<Integer>(location, date, Integer.valueOf(record.get(dateHeader)));
+                                } catch (NumberFormatException nfe) {
+                                    logger.warn(String.format(parsingError, record.getRecordNumber(), source, getAllRecords(record), "value can't be parsed: '" + record.get(dateHeader) + "' is invalid", dateHeader + " ignored for " + location));
+                                    return null;
+                                }
+                            })
+                            .filter(Objects::nonNull);
                     } catch (NumberFormatException nfe) {
-                        logger.warn(String.format(parsingError, record.getRecordNumber(), source, getAllRecords(record), "location can't be parsed: " + getMessage(nfe), "location ignored"));
+                        logger.warn(String.format(parsingError, record.getRecordNumber(), source, getAllRecords(record), "location's coordinates can't be parsed: " + getMessage(nfe), "location ignored"));
                         return null;
                     }
                 })
-                .filter(Objects::nonNull)
-                .flatMap(Function.identity());
+                .filter(Objects::nonNull);
 
         } catch (IOException e) {
             throw new RuntimeException(e);

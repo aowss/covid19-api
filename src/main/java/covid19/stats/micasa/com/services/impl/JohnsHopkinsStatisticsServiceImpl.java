@@ -45,6 +45,17 @@ public class JohnsHopkinsStatisticsServiceImpl implements StatisticsService {
         new Location("MS Zaandam", "")
     );
 
+    private static final Map<String, String> countryNameMapping = Map.of(
+        "US", "United States of America",
+        "Burma", "Myanmar",
+        "Korea, South", "South Korea",
+        "West Bank and Gaza", "Palestine",
+        "Taiwan*", "Taiwan",
+        "Cote d'Ivoire", "Ivory Coast",
+        "Congo (Kinshasa)", "Democratic Republic of the Congo",
+        "Congo (Brazzaville)", "Republic of the Congo"
+    );
+
     private static final HttpClient httpClient = HttpClient.newBuilder().version(HttpClient.Version.HTTP_2).build();
     private static final int timeout = 30;
 
@@ -109,18 +120,18 @@ public class JohnsHopkinsStatisticsServiceImpl implements StatisticsService {
         All the maps don't have the exact same locations.
         The locations might be different or the granularity might be different, i.e. the confirmed cases are broken down by province but not the recovered ones.
          */
-        Set<Location> allLocations = new HashSet<>(confirmed.keySet());
-        allLocations.addAll(death.keySet());
-        allLocations.addAll(recovered.keySet());
+        Set<Location> locations = new HashSet<>(confirmed.keySet());
+        locations.addAll(death.keySet());
+        locations.addAll(recovered.keySet());
 
-        //  All the maps don't have the exact same dates ?
+        //  All the maps should be the same
         Set<LocalDate> allDates = confirmed.values().stream().flatMap(List::stream).map(Reading::date).collect(toSet());
         boolean differentDeathDates = allDates.addAll(death.values().stream().flatMap(List::stream).map(Reading::date).collect(toSet()));
         if (differentDeathDates) logger.warn(String.format(unexpectedData, "the deaths dates are different from the confirmed cases dates"));
         boolean differentRecoveredDates = allDates.addAll(recovered.values().stream().flatMap(List::stream).map(Reading::date).collect(toSet()));
         if (differentRecoveredDates) logger.warn(String.format(unexpectedData, "the recovered dates are different from the confirmed cases dates"));
 
-        return allLocations.stream()
+        return locations.stream()
             .collect(
                 toMap(
                     Function.identity(),
@@ -172,7 +183,9 @@ public class JohnsHopkinsStatisticsServiceImpl implements StatisticsService {
             return parser.getRecords().stream()
                 .flatMap(record -> {
                     try {
-                        Location location = new Location(record.get(1), record.get(0), Float.valueOf(record.get(2)), Float.valueOf(record.get(3)));
+                        String countryName = record.get(1);
+                        if (countryNameMapping.containsKey(countryName)) countryName = countryNameMapping.get(countryName);
+                        Location location = new Location(countryName, record.get(0), Float.valueOf(record.get(2)), Float.valueOf(record.get(3)));
                         if (locationsToDiscard.contains(location)) {
                             logger.warn(String.format(discardedEntry, record.getRecordNumber(), source, location));
                             return null;
@@ -181,7 +194,7 @@ public class JohnsHopkinsStatisticsServiceImpl implements StatisticsService {
                             .map(date -> {
                                 var dateHeader = date.format(formatter);
                                 try {
-                                    return new Reading<Integer>(location, date, Integer.valueOf(record.get(dateHeader)));
+                                    return new Reading<>(location, date, Integer.valueOf(record.get(dateHeader)));
                                 } catch (NumberFormatException nfe) {
                                     logger.warn(String.format(parsingError, record.getRecordNumber(), source, getAllRecords(record), "value can't be parsed: '" + record.get(dateHeader) + "' is invalid", dateHeader + " ignored for " + location));
                                     return null;

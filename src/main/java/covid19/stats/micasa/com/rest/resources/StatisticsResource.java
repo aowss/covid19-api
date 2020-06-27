@@ -53,7 +53,7 @@ public class StatisticsResource {
     }
 
 
-    @GetMapping(value = "stats", produces = "application/vnd.rogers.service.no-links+json")
+    @GetMapping(value = "stats", produces = "application/vnd.covid-19.breakdown+json")
     public ResponseEntity<Map<Location, SortedSet<Reading<Statistic>>>> countryBreakdownStats(@RequestParam("location") Optional<String> location,
                                                                                               @RequestParam("from") Optional<LocalDate> from,
                                                                                               @RequestParam("to") Optional<LocalDate> to) {
@@ -63,7 +63,7 @@ public class StatisticsResource {
         var response = ResponseEntity.ok(retrieveStatistics.retrieveCountryStatistics(location, from, to));
 
         var duration = ( System.nanoTime() - start ) / 1_000_000;
-        CompletableFuture.runAsync(() -> logger.info(String.format("retrieve the statistics [ duration = %d ms ] [ location = %s, from = %s, to = %s ]", duration, location.orElse("n/a"), from.orElse(null), to.orElse(null))));
+        CompletableFuture.runAsync(() -> logger.info(String.format("retrieve the statistics breakdown [ duration = %d ms ] [ location = %s, from = %s, to = %s ]", duration, location.orElse("n/a"), from.orElse(null), to.orElse(null))));
 
         return response;
 

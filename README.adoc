@@ -2,13 +2,17 @@
 :Email:                 <aowss@yahoo.com>
 :Date:                  September 2020
 :Revision:              version 0.1.0
-:source-highlighter:    coderay
+:source-highlighter:    highlightjs
 :source-language:       java
 :toc2:
 :toclevels:             5
 :icons:                 font
 
 = COVID-19 API
+
+****
+This is a simple API to expoose Covid-19 data.
+****
 
 I was inspired to create this by Nate Murray's email : `The Code of COVID-19 - Open-source projects to understand - and fight - the global pandemic`.
 
@@ -79,7 +83,14 @@ This simplifies the logic and allows for corrections to past data in case this h
 
 == Build
 
-This project uses https://maven.apache.org/maven-release/maven-release-plugin/[the Maven Release Plugin] and https://github.com/marketplace/actions/maven-release[the GitHub Maven release Action] to publish the artifact to GitHub's Maven repository on each commit to master. footnote:[It has been configured following https://blog.frankel.ch/github-actions-maven-releases/[these instructions] and https://docs.github.com/en/packages/using-github-packages-with-your-projects-ecosystem/configuring-apache-maven-for-use-with-github-packages[the GitHub docs].]
+This project uses https://github.com/marketplace?type=actions[GitHub Actions] to build and publish.
+
+The link:.github/workflows/test.yml[`test.yml`] script is used to run all tests on each commit :
+
+[CAUTION]
+Unlike most CI workflows, this step will not block the `git push` command in case of failure since this would require a pre-receive hook.
+
+This project uses https://maven.apache.org/maven-release/maven-release-plugin/[the Maven Release Plugin] and https://github.com/marketplace/actions/maven-release[the GitHub Maven release Action] to publish the artifact to GitHub's Maven repository on each commit to `release`. footnote:[It has been configured following https://blog.frankel.ch/github-actions-maven-releases/[these instructions] and https://docs.github.com/en/packages/using-github-packages-with-your-projects-ecosystem/configuring-apache-maven-for-use-with-github-packages[the GitHub docs].]
 
 . Maven Configuration
 

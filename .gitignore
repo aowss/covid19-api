@@ -3,6 +3,7 @@
 *.idea
 *.iml
 .asciidoctor
+*.html
 .mvn/maven.config
 .mvn/settings.xml
 .flattened-pom.xml

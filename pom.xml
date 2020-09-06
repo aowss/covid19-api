@@ -97,6 +97,15 @@
                 </configuration>
             </plugin>
 
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <argLine>--illegal-access=permit --enable-preview</argLine>
+                </configuration>
+            </plugin>
+
             <!-- creating an executable jar -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>

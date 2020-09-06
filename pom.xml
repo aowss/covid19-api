@@ -10,7 +10,7 @@
 
     <groupId>com.micasa.api</groupId>
     <artifactId>covid-19-api</artifactId>
-    <version>1.2</version>
+    <version>1.3-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <description>COVID 19 API</description>
@@ -127,7 +127,7 @@
 
     <scm>
         <developerConnection>scm:git:https://github.com/${git.repository}.git</developerConnection>
-      <tag>covid-19-api-1.2</tag>
+      <tag>HEAD</tag>
   </scm>
 
     <distributionManagement>

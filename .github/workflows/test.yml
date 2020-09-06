@@ -1,9 +1,12 @@
-name: Release
+name: Test
 
 on:
   push:
     branches:
-      - release
+      - master
+  pull_request:
+    branches:
+      - master
 
 jobs:
   build:
@@ -28,12 +31,5 @@ jobs:
           java-version: 14
           server-id: github
 
-      - name: Configure Git user
-        run: |
-          git config user.email "actions@github.com"
-          git config user.name "GitHub Actions"
-
-      - name: Publish JAR
-        run: ./mvnw -B release:prepare release:perform
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Test
+        run: ./mvnw clean test

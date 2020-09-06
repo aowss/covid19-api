@@ -1,0 +1,325 @@
+:Author:                Aowss Ibrahim
+:Email:                 <aowss@yahoo.com>
+:Date:                  September 2020
+:Revision:              version 0.1.0
+:source-highlighter:    coderay
+:source-language:       java
+:toc2:
+:toclevels:             5
+:icons:                 font
+
+= COVID-19 API
+
+I was inspired to create this by Nate Murray's email : `The Code of COVID-19 - Open-source projects to understand - and fight - the global pandemic`.
+
+Some good resources are :
+
+* https://coronavirus.jhu.edu/map.html[Johns Hopkins CSSE's dashboard]
+* https://datahub.io/core/covid-19[Data Hub]
+* https://github.com/GoogleCloudPlatform/covid-19-open-data[Open COVID-19 Data]
+* https://www.bloomberg.com/graphics/2020-coronavirus-cases-world-map/?utm_source=facebook&utm_medium=cpc&utm_campaign=covid19&utm_content=tofu&fbclid=IwAR0UgjaNWvouJAPggGdA6VnogRuCM2SPWePRKYcfSeF3coYcgqS5DepTYXw[Bloomberg's Dashboard]
+* https://www.theguardian.com/world/2020/mar/27/coronavirus-mapped-map-which-countries-have-the-most-cases-and-deaths[The Guardian's analysis]
+* https://www.worldometers.info/coronavirus/[Worldometer's summary]
+* https://www.ontario.ca/page/2019-novel-coronavirus?utm_source=Google&utm_medium=CPC&utm_campaign=COVID-19[Ontario's details]
+* https://www.gohkokhan.com/corona-virus-interactive-dashboard-tweaked/[Another dashboard]
+* http://91-divoc.com/pages/covid-visualization/[Configurable visualiztion]
+* https://www.kaggle.com/yuanquan/covid-19-prediction-by-country-and-province[Predictions notebook]
+* https://prateekiiest.github.io/COVID-19-Analysis/[Video of the evolution over time]
+* https://ourworldindata.org/covid-sources-comparison[Sources comparison]
+* https://aatishb.com/covidtrends/[Trends]
+* https://coronadatascraper.com/#home[Data Scraper]
+* https://corona-api-landingpage.netlify.com/[API]
+* https://github.com/cipriancraciun/covid19-datasets[Different Data Sets]
+* https://www.ecdc.europa.eu/en/publications-data/download-todays-data-geographic-distribution-covid-19-cases-worldwide[European Centre for Disease Prevention and Control] 's https://opendata.ecdc.europa.eu/covid19/casedistribution/json/[Data in JSON format]
+
+.French
+* https://www.lemonde.fr/les-decodeurs/article/2020/03/27/coronavirus-visualisez-les-pays-qui-ont-aplati-la-courbe-de-l-infection-et-ceux-qui-n-y-sont-pas-encore-parvenus_6034627_4355770.html[Le Monde trend Analysis in French]
+* https://www.lemonde.fr/les-decodeurs/article/2020/02/27/en-carte-visualisez-la-propagation-mondiale-de-l-epidemie-de-coronavirus_6031092_4355770.html[Le Monde analysis in French]
+
+== Data Source
+
+The data is sourced from https://github.com/CSSEGISandData/COVID-19[Johns Hopkins CSSE's COVID-19 Data Repository]. 
+
+The problem with this source is that the format keeps changing and is inconsistent :
+
+* the recovered cases are not reported anymore
+* file names change
+* some files are, at some point in time, not well-formed
+* some countries that are broken down in regions have a summary in the file, e.g. `France`, and some don't, e.g. `Canada`
+* `Canada` has an entry where the region is named `Recovered` !
+* for some reason, `US` has a separate file
+
+Other sources might be worth considering :
+
+* https://github.com/cipriancraciun/covid19-datasets
+
+=== Validation
+
+The country name and the region name is validated against https://open-covid-19.github.io/data/metadata.csv.
+
+=== Official Sources
+
+* France : https://www.gouvernement.fr/info-coronavirus/carte-et-donnees[Government Portal] [ same as https://dashboard.covid19.data.gouv.fr[Government Dashboard] ] or https://www.santepubliquefrance.fr/maladies-et-traumatismes/maladies-et-infections-respiratoires/infection-a-coronavirus/articles/infection-au-nouveau-coronavirus-sars-cov-2-covid-19-france-et-monde[Santé Publique]
+
+== Implementation
+
+=== Java &amp; Spring versions
+
+* This project uses Java 14 and the latest https://spring.io/projects/spring-boot[Spring Boot] version.
+
+* Version `3.0.0-M4` of the `surefire` plugin is needed to run the tests.
+
+=== Flow
+
+The data is reloaded in memory, in the link:./src/main/java/covid19/stats/micasa/com/repositories/StatisticsRepository.java[`StatisticsRepository`] class, from the source, by the link:./src/main/java/covid19/stats/micasa/com/activities/LoadStatistics.java[`LoadStatistics`] class, on a fixed schedule. +
+The source location and the reload frequency are configured in the link:./src/main/resources/application.yaml[application's config file].
+
+Because the reload of the entire data set is fast, we use the https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series[full data sets] and not the https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_daily_reports[daily delta sets]. +
+This simplifies the logic and allows for corrections to past data in case this happens.
+
+== Build
+
+This project uses https://maven.apache.org/maven-release/maven-release-plugin/[the Maven Release Plugin] and https://github.com/marketplace/actions/maven-release[the GitHub Maven release Action] to publish the artifact to GitHub's Maven repository on each commit to master. footnote:[It has been configured following https://blog.frankel.ch/github-actions-maven-releases/[these instructions] and https://docs.github.com/en/packages/using-github-packages-with-your-projects-ecosystem/configuring-apache-maven-for-use-with-github-packages[the GitHub docs].]
+
+. Maven Configuration
+
+.. The https://maven.apache.org/maven-release/maven-release-plugin/examples/prepare-release.html[`release:prepare` goal] requires the version to use the `x-SNAPSHOT` format :
++
+[source, xml]
+.`pom.xml`
+----
+<version>1.0-SNAPSHOT</version>
+----
+
+.. The https://maven.apache.org/maven-release/maven-release-plugin/examples/perform-release.html[`release:perform` goal] requires an SCM URL :
++
+[source, xml]
+.`pom.xml`
+----
+<properties>
+    <git.repository>aowss/covid19-api</git.repository>
+</properties>
+
+<scm>
+    <developerConnection>scm:git:https://github.com/${git.repository}.git</developerConnection> <1>
+</scm>
+----
+<1> The URL of this repository
+
+.. The SCM credentials are securely configured
+
+... The repository's credentials are stored in the https://maven.apache.org/settings.html[Maven's settings] footnote:[As expalined in the https://maven.apache.org/maven-release/maven-release-plugin/faq.html#credentials[Maven Release Plugin FAQs]] :
++
+[source, xml]
+.`settings.xml`
+----
+<settings>
+  <servers>
+    <server>
+      <id>github</id> <1>
+      <username>my_usernam</username>
+      <password>my_password</password>
+    </server>
+  </servers>
+</settings>
+----
+<1> The repository's id.
+
+... The `pom.xml` points to these credentials
++
+[source, xml]
+.`pom.xml`
+----
+<properties>
+  <project.scm.id>github</project.scm.id> <1>
+</properties>
+----
+<1> This id needs to match the one specified in the settings
+
+.. The Maven Repository is configured
++
+[source, xml]
+.`pom.xml`
+----
+<distributionManagement>
+    <repository>
+        <id>github</id> <1>
+        <name>GitHub</name>
+        <url>https://maven.pkg.github.com/${git.repository}</url> <2> <3>
+    </repository>
+</distributionManagement>
+----
+<1> This id needs to match the one specified in the settings
+<2> `https://maven.pkg.github.com/` is the URL of the GitHub Maven repository
+<3> `${git.repository}`, e.g. `aowss/covid19-api`, is the location where the artifact will be stored
+
+. Set up the https://github.com/takari/maven-wrapper[Maven wrapper]
++
+This Maven command will be used by the CI pipeline to push the artifact to the Maven repository :
++
+[source, cmd]
+----
+mvn -B release:prepare release:perform <1>
+----
+<1> The `-B` flag tells Maven to run the command in batch mode and not prompt for release and snapshot versions
++
+To avoid installing Maven on the CI server, we use the wrapper which is a self-executable JAR that can kickstart a specific version of the `mvn` tool regardless of the environment.
++
+[source, cmd]
+----
+mvn -N io.takari:maven:wrapper
+----
++
+[NOTE]
+What about the credentials ? How does the CI server have access to the credentails ?
+
+. Configure GitHub build
+
+[source, yaml]
+.`.github/worflows/release.yml`
+----
+name: Release
+
+on:
+  push:
+    branches:
+      - release <1>
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout project
+        uses: actions/checkout@v2
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v1.4.2
+        with:
+          java-version: 14
+          server-id: github
+
+      - name: Configure Git user
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+
+      - name: Publish JAR
+        run: ./mvnw -B release:prepare release:perform <2>
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+----
+<1> In this configuration, developers continuously push code to `master` and create a release by pushing the `master` branch to the `release` branch : `git push origin master:release`.
+<2> Uses what was setup in the previous 2 steps
+
+== Run
+
+=== Command Line
+
+*From the root of the project* :
+
+* Use Java 14
+
+`export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-14.jdk/Contents/Home`
+
+* Build and package
+
+`mvn package`
+
+* Start the service
+
+`java --enable-preview -jar target/covid-19-api.jar`
+
+The server port is `9000` as specified in the link:./src/main/resources/application.yaml[application configuration].
+
+* Access the API
+
+`curl -X GET &#39;http://localhost:9000/covid19/stats?location=US&amp;from=2020-02-01&amp;to=2020-02-29&#39;`
+
+[source,json]
+.Partial sample response
+----
+{
+    "US / Sullivan, TN": [
+        {
+            "date": "2020-02-01",
+            "value": {
+                "confirmedCases": 0,
+                "deaths": 0,
+                "recoveries": 0
+            }
+        },
+        ...
+        {
+            "date": "2020-02-28",
+            "value": {
+                "confirmedCases": 0,
+                "deaths": 0,
+                "recoveries": 0
+            }
+        }
+    ],
+    ...
+    "US / Honolulu County, HI": [
+        {
+            "date": "2020-02-01",
+            "value": {
+                "confirmedCases": 0,
+                "deaths": 0,
+                "recoveries": 0
+            }
+        },
+        ...
+        {
+            "date": "2020-02-28",
+            "value": {
+                "confirmedCases": 0,
+                "deaths": 0,
+                "recoveries": 0
+            }
+        }
+    ]
+}
+
+----
+
+`curl -X GET &#39;http://localhost:9000/covid19/info`
+
+[source,json]
+----
+{
+    "lastUpdateTime": "2020-03-23T22:40:14.272977Z",
+    "from": "2020-01-22",
+    "to": "2020-03-22",
+    "locations": [
+        {
+            "country": "US",
+            "province": "Bon Homme, SD"
+        },
+        ...
+        {
+            "country": "Lebanon",
+            "province": ""
+        },
+        {
+            "country": "China",
+            "province": "Macau"
+        }
+    ]
+}
+----
+
+* Debug
+
+If you need to debug the service, use the following command to start the service
+
+`java --enable-preview -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n -jar target/covid-19-api.jar`
+
+then connect a remote debugging session to port `8000`
